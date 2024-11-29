@@ -1,5 +1,9 @@
 import pygame
+import pygame_widgets as pw
+from pygame_widgets.button import Button
 import random
+
+pygame.init()
 
 SCREEN_WIDTH = 1000
 SCREEN_HEIGHT = 750
@@ -8,10 +12,12 @@ N_COLS = SCREEN_WIDTH // CELL_SIZE
 N_ROWS = SCREEN_HEIGHT // CELL_SIZE
 
 COLORS = {
-    "BLACK":  ( 0,   0,   0   ),
-    "WHITE":  ( 255, 255, 255 ),
-    "RED":    ( 212, 57,  57  ),
-    "PURPLE": ( 124, 57, 212  )
+    "BLACK":       ( 0,   0,   0   ),
+    "WHITE":       ( 255, 255, 255 ),
+    "RED":         ( 212, 57,  57  ),
+    "PURPLE":      ( 124, 57,  212 ),
+    "LIGHTPURPLE": ( 184, 158, 219 ),
+    "GRAYPURPLE":  ( 116, 98,  140 )
 }
 
 SCREEN = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -53,6 +59,13 @@ class MazeGrid:
         self.stack = []
         self.finished = False
 
+        self.reset()
+
+    def reset(self):
+        self.finished = False
+        self.cells.clear()
+        self.stack.clear()
+
         # initialize grid of cells
         for i in range(N_COLS):
             for j in range(N_ROWS):
@@ -84,6 +97,7 @@ class MazeGrid:
     
     def checkCellNeighbors(self, i, j):
         unvisited = []
+        
         if j - 1 >= 0 and j - 1 < N_ROWS:
             top = self.cells[index(i, j - 1)]
             if not top.visited:
@@ -122,24 +136,43 @@ class MazeGrid:
 
 
 
-
 if __name__ == "__main__":
     maze = MazeGrid()
+    widgets = []
+
+    # button callback to reset screen/maze
+    def reset():
+        SCREEN.fill(COLORS["BLACK"])
+        pygame.display.update()
+        maze.reset()
+        widgets[0].hide()
+    # button to start a new maze
+    newMazeButton = Button(
+        SCREEN, SCREEN_WIDTH / 2 - 100, SCREEN_HEIGHT - 55, 200, 40,
+        text = "Start New Maze", fontSize = 20, margin = 10,
+        shadowDistance = 2, shadowColour = COLORS["BLACK"],
+        inactiveColour = COLORS["GRAYPURPLE"],
+        pressedColour = COLORS["LIGHTPURPLE"], radius = 15,
+        onRelease = reset
+    )
+    newMazeButton.hide()
+    widgets.append(newMazeButton)
 
     run = True
     while run:
-        for e in pygame.event.get():
+        events = pygame.event.get()
+        for e in events:
             if e.type == pygame.QUIT:
                 run = False
+                continue
+        pw.update(events)
         
-        # do maze generation algorithm here
         if not maze.finished:
             maze.update()
         else:
-            SCREEN.fill(COLORS["BLACK"])
-            maze = MazeGrid()
+            widgets[0].show()
 
-        pygame.display.flip()
+        pygame.display.update()
         CLOCK.tick(FPS)
 
     pygame.quit()
